@@ -8,8 +8,8 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
 use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
@@ -22,12 +22,12 @@ class IdVerificationForm
             ->components([
                 Fieldset::make('Pengguna')
                     ->schema([
-                        TextInput::make('user.name')
+                        Placeholder::make('user_name')
                             ->label('Username')
-                            ->disabled(),
-                        TextInput::make('user.email')
+                            ->content(fn ($record) => $record?->user?->name ?? '-'),
+                        Placeholder::make('user_email')
                             ->label('Email')
-                            ->disabled(),
+                            ->content(fn ($record) => $record?->user?->email ?? '-'),
                     ])
                     ->columns(2),
 
@@ -134,9 +134,9 @@ class IdVerificationForm
                                 'rejected' => 'Rejected',
                             ])
                             ->disabled(),
-                        TextInput::make('reviewer.name')
+                        Placeholder::make('reviewer_name')
                             ->label('Direview Oleh')
-                            ->disabled(),
+                            ->content(fn ($record) => $record?->reviewer?->name ?? '-'),
                         DatePicker::make('reviewed_at')
                             ->label('Tanggal Review')
                             ->disabled(),
