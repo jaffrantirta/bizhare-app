@@ -7,6 +7,10 @@ use App\Http\Traits\ApiResponse;
 use App\Models\Investment;
 use App\Models\SystemSetting;
 use App\Models\Transaction;
+use App\Notifications\InvestmentPaymentFailedNotification;
+use App\Notifications\InvestmentPaymentSuccessNotification;
+use App\Notifications\TopUpFailedNotification;
+use App\Notifications\TopUpSuccessNotification;
 use App\Services\InvestmentService;
 use App\Services\MidtransService;
 use App\Services\ReferralService;
@@ -183,8 +187,22 @@ class PaymentController extends Controller
                         'status'          => $internalStatus,
                     ]);
 
+                    $user = $transaction->user;
+
                     if ($internalStatus === 'success') {
                         $this->processSuccessfulPayment($transaction);
+
+                        if ($transaction->type === 'initial_deposit') {
+                            $user->notify(new TopUpSuccessNotification($transaction));
+                        } elseif (in_array($transaction->type, ['investment', 'installment'])) {
+                            $user->notify(new InvestmentPaymentSuccessNotification($transaction));
+                        }
+                    } elseif ($internalStatus === 'failed') {
+                        if ($transaction->type === 'initial_deposit') {
+                            $user->notify(new TopUpFailedNotification($transaction));
+                        } elseif (in_array($transaction->type, ['investment', 'installment'])) {
+                            $user->notify(new InvestmentPaymentFailedNotification($transaction));
+                        }
                     }
                 }
             } catch (Exception) {

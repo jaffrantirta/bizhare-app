@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Withdrawals\Tables;
 
+use App\Notifications\WithdrawalApprovedNotification;
+use App\Notifications\WithdrawalProcessedNotification;
+use App\Notifications\WithdrawalRejectedNotification;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -62,11 +65,14 @@ class WithdrawalsTable
                     ->icon('heroicon-o-check')
                     ->visible(fn ($record) => $record->status === 'pending')
                     ->requiresConfirmation()
-                    ->action(fn ($record) => $record->update([
-                        'status' => 'approved',
-                        'processed_by' => Auth::id(),
-                        'processed_at' => now(),
-                    ])),
+                    ->action(function ($record) {
+                        $record->update([
+                            'status'       => 'approved',
+                            'processed_by' => Auth::id(),
+                            'processed_at' => now(),
+                        ]);
+                        $record->user->notify(new WithdrawalApprovedNotification($record));
+                    }),
                 Action::make('process')
                     ->label('Mark as Processed')
                     ->color('info')
@@ -76,18 +82,19 @@ class WithdrawalsTable
                     ->action(function ($record) {
                         DB::transaction(function () use ($record) {
                             $record->update([
-                                'status' => 'processed',
+                                'status'       => 'processed',
                                 'processed_by' => Auth::id(),
                                 'processed_at' => now(),
                             ]);
 
-                            // Update related transaction
                             $record->user->transactions()
                                 ->where('type', 'withdrawal')
                                 ->where('reference_id', $record->id)
                                 ->where('status', 'pending')
                                 ->update(['status' => 'success', 'confirmed_at' => now()]);
                         });
+
+                        $record->user->notify(new WithdrawalProcessedNotification($record));
                     }),
                 Action::make('reject')
                     ->label('Reject')
@@ -102,22 +109,23 @@ class WithdrawalsTable
                     ->action(function ($record, array $data) {
                         DB::transaction(function () use ($record, $data) {
                             $record->update([
-                                'status' => 'rejected',
-                                'notes' => $data['notes'],
+                                'status'       => 'rejected',
+                                'notes'        => $data['notes'],
                                 'processed_by' => Auth::id(),
                                 'processed_at' => now(),
                             ]);
 
-                            // Refund the balance
                             $record->user->increment('balance', $record->amount);
 
-                            // Update related transaction to failed
                             $record->user->transactions()
                                 ->where('type', 'withdrawal')
                                 ->where('reference_id', $record->id)
                                 ->where('status', 'pending')
                                 ->update(['status' => 'failed', 'confirmed_at' => now()]);
                         });
+
+                        $record->refresh();
+                        $record->user->notify(new WithdrawalRejectedNotification($record));
                     }),
             ])
             ->defaultSort('created_at', 'desc');

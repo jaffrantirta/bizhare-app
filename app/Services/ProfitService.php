@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\ProfitDistribution;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\ProfitReceivedNotification;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -32,41 +33,49 @@ class ProfitService
             throw new Exception('No active investors found for this business.');
         }
 
-        $investorCount = $activeInvestments->count();
+        $investorCount     = $activeInvestments->count();
         $perInvestorAmount = round($amount / $investorCount, 2);
 
-        return DB::transaction(function () use (
+        $credited = [];
+
+        $distribution = DB::transaction(function () use (
             $business, $amount, $perInvestorAmount,
-            $activeInvestments, $distributedBy
+            $activeInvestments, $distributedBy, &$credited
         ) {
             $distribution = ProfitDistribution::create([
-                'business_id' => $business->id,
-                'total_amount' => $amount,
+                'business_id'        => $business->id,
+                'total_amount'       => $amount,
                 'per_investor_amount' => $perInvestorAmount,
-                'distributed_by' => $distributedBy->id,
-                'distributed_at' => now(),
+                'distributed_by'     => $distributedBy->id,
+                'distributed_at'     => now(),
             ]);
 
             foreach ($activeInvestments as $investment) {
                 $investor = $investment->user;
 
-                // Credit investor's balance
                 $investor->increment('balance', $perInvestorAmount);
 
-                // Create transaction record
-                Transaction::create([
-                    'user_id' => $investor->id,
-                    'type' => 'profit',
-                    'amount' => $perInvestorAmount,
-                    'status' => 'success',
+                $transaction = Transaction::create([
+                    'user_id'      => $investor->id,
+                    'type'         => 'profit',
+                    'amount'       => $perInvestorAmount,
+                    'status'       => 'success',
                     'reference_id' => (string) $distribution->id,
-                    'notes' => "Profit distribution for business: {$business->name}",
+                    'notes'        => "Profit distribution for business: {$business->name}",
                     'confirmed_by' => $distributedBy->id,
                     'confirmed_at' => now(),
                 ]);
+
+                $credited[] = ['investor' => $investor, 'transaction' => $transaction];
             }
 
             return $distribution;
         });
+
+        foreach ($credited as ['investor' => $investor, 'transaction' => $transaction]) {
+            $investor->notify(new ProfitReceivedNotification($transaction, $business));
+        }
+
+        return $distribution;
     }
 }

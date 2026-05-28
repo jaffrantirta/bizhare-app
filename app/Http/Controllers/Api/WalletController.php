@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponse;
 use App\Models\SystemSetting;
 use App\Models\Withdrawal;
+use App\Notifications\WithdrawalSubmittedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -72,6 +73,8 @@ class WalletController extends Controller
             'reference_id' => (string) $withdrawal->id,
             'notes'       => "Withdrawal to {$validated['bank_name']} - {$validated['account_number']}",
         ]);
+
+        $user->notify(new WithdrawalSubmittedNotification($withdrawal));
 
         return $this->created(['withdrawal' => $withdrawal], 'Withdrawal request submitted successfully.');
     }

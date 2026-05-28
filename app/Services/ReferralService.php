@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SystemSetting;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\ReferralRewardNotification;
 use Illuminate\Support\Facades\DB;
 
 class ReferralService
@@ -27,10 +28,12 @@ class ReferralService
             $reward = (int) SystemSetting::get("referral_reward_level_{$level}", 0);
 
             if ($reward > 0) {
-                DB::transaction(function () use ($upline, $newUser, $level, $reward) {
+                $transaction = null;
+
+                DB::transaction(function () use ($upline, $newUser, $level, $reward, &$transaction) {
                     $upline->increment('balance', $reward);
 
-                    Transaction::create([
+                    $transaction = Transaction::create([
                         'user_id'      => $upline->id,
                         'type'         => 'referral_reward',
                         'amount'       => $reward,
@@ -40,6 +43,10 @@ class ReferralService
                         'confirmed_at' => now(),
                     ]);
                 });
+
+                if ($transaction) {
+                    $upline->notify(new ReferralRewardNotification($transaction, $newUser, $level));
+                }
             }
 
             $upline = $upline->referredBy;

@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponse;
 use App\Models\Investment;
 use App\Models\Transaction;
+use App\Notifications\InvestmentPaymentFailedNotification;
+use App\Notifications\InvestmentPaymentSuccessNotification;
+use App\Notifications\TopUpFailedNotification;
+use App\Notifications\TopUpSuccessNotification;
 use App\Services\InvestmentService;
 use App\Services\MidtransService;
 use App\Services\ReferralService;
@@ -60,8 +64,8 @@ class MidtransWebhookController extends Controller
 
         DB::transaction(function () use ($transaction, $internalStatus, $payload) {
             $transaction->update([
-                'status'                 => $internalStatus,
-                'midtrans_status'        => $payload['transaction_status'] ?? null,
+                'status'                  => $internalStatus,
+                'midtrans_status'         => $payload['transaction_status'] ?? null,
                 'midtrans_transaction_id' => $payload['transaction_id'] ?? $transaction->midtrans_transaction_id,
             ]);
 
@@ -69,6 +73,22 @@ class MidtransWebhookController extends Controller
                 $this->processSuccessfulPayment($transaction);
             }
         });
+
+        $user = $transaction->user;
+
+        if ($internalStatus === 'success') {
+            if ($transaction->type === 'initial_deposit') {
+                $user->notify(new TopUpSuccessNotification($transaction));
+            } elseif (in_array($transaction->type, ['investment', 'installment'])) {
+                $user->notify(new InvestmentPaymentSuccessNotification($transaction));
+            }
+        } elseif ($internalStatus === 'failed') {
+            if ($transaction->type === 'initial_deposit') {
+                $user->notify(new TopUpFailedNotification($transaction));
+            } elseif (in_array($transaction->type, ['investment', 'installment'])) {
+                $user->notify(new InvestmentPaymentFailedNotification($transaction));
+            }
+        }
 
         return $this->success(null, 'Webhook processed');
     }

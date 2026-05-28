@@ -3,6 +3,10 @@
 namespace App\Filament\Resources\Transactions\Tables;
 
 use App\Models\Investment;
+use App\Notifications\InvestmentPaymentFailedNotification;
+use App\Notifications\InvestmentPaymentSuccessNotification;
+use App\Notifications\TopUpFailedNotification;
+use App\Notifications\TopUpSuccessNotification;
 use App\Services\InvestmentService;
 use App\Services\ReferralService;
 use Filament\Actions\Action;
@@ -111,11 +115,13 @@ class TransactionsTable
                                     'initial_deposit_confirmed_at' => now(),
                                 ]);
                                 app(ReferralService::class)->distributeRewards($user);
+                                $user->notify(new TopUpSuccessNotification($record));
                             } elseif (in_array($record->type, ['investment', 'installment'])) {
                                 $investment = Investment::find($record->reference_id);
                                 if ($investment) {
                                     app(InvestmentService::class)->activateInvestment($investment);
                                 }
+                                $user->notify(new InvestmentPaymentSuccessNotification($record));
                             }
                         });
                     }),
@@ -125,11 +131,21 @@ class TransactionsTable
                     ->icon('heroicon-o-x-circle')
                     ->visible(fn ($record) => $record->status === 'pending')
                     ->requiresConfirmation()
-                    ->action(fn ($record) => $record->update([
-                        'status'       => 'failed',
-                        'confirmed_by' => Auth::id(),
-                        'confirmed_at' => now(),
-                    ])),
+                    ->action(function ($record) {
+                        $record->update([
+                            'status'       => 'failed',
+                            'confirmed_by' => Auth::id(),
+                            'confirmed_at' => now(),
+                        ]);
+
+                        $user = $record->user;
+
+                        if ($record->type === 'initial_deposit') {
+                            $user->notify(new TopUpFailedNotification($record));
+                        } elseif (in_array($record->type, ['investment', 'installment'])) {
+                            $user->notify(new InvestmentPaymentFailedNotification($record));
+                        }
+                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }
