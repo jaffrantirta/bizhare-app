@@ -5,7 +5,7 @@ namespace App\Services;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
-use Midtrans\CoreApi;
+use Midtrans\Snap;
 use Midtrans\Transaction;
 
 class MidtransService
@@ -16,84 +16,59 @@ class MidtransService
         Config::$isProduction = config('services.midtrans.is_production', false);
         Config::$isSanitized  = true;
         Config::$is3ds        = true;
-
-        // Indonesian locale for GoPay pages
-        Config::$curlOptions[CURLOPT_HTTPHEADER][] = 'X-Payment-Locale: id-ID';
     }
 
     /**
-     * Create GoPay Dynamic QRIS charge.
-     * Uses order_id as Idempotency-Key — safe to retry on network error.
+     * Create a Snap transaction token.
+     * Returns snap_token (used by Snap.js / mobile SDK) and snap_redirect_url (WebView).
      *
      * @param string $orderId
      * @param int $grossAmount Amount in IDR
-     * @param array $customerDetails
-     * @return array{qr_code_url: string, deeplink_url: string, transaction_id: string, order_id: string}
+     * @param array $customerDetails  ['first_name', 'email', ...]
+     * @return array{snap_token: string, snap_redirect_url: string, order_id: string}
      * @throws Exception
      */
-    public function createGopayCharge(string $orderId, int $grossAmount, array $customerDetails = []): array
+    public function createSnapToken(string $orderId, int $grossAmount, array $customerDetails = []): array
     {
-        // Midtrans requires HTTPS callback URL in production
         $callbackUrl = str_replace('http://', 'https://', config('app.url'))
             . '/api/payments/midtrans/callback';
 
-        // Idempotency-Key prevents duplicate charges on mobile retry (max 46 chars)
-        Config::$paymentIdempotencyKey = substr($orderId, 0, 46);
-
         $params = [
-            'payment_type' => 'gopay',
             'transaction_details' => [
                 'order_id'     => $orderId,
                 'gross_amount' => $grossAmount,
             ],
+            'enabled_payments' => ['gopay', 'other_qris'],
             'gopay' => [
                 'enable_callback' => true,
                 'callback_url'    => $callbackUrl,
             ],
-            'custom_field1' => 'mybisnis.biz.id',
-            'metadata' => [
-                'app' => 'mybisnis.biz.id',
+            'callbacks' => [
+                'finish' => $callbackUrl,
             ],
+            'expiry' => [
+                'unit'     => 'hours',
+                'duration' => 24,
+            ],
+            'custom_field1' => 'mybisnis.biz.id',
         ];
 
         if (!empty($customerDetails)) {
             $params['customer_details'] = $customerDetails;
         }
 
-        Log::info('Midtrans GoPay charge request', [
-            'order_id'        => $orderId,
-            'amount'          => $grossAmount,
-            'is_production'   => Config::$isProduction,
-            'callback_url'    => $callbackUrl,
-            'idempotency_key' => Config::$paymentIdempotencyKey,
+        Log::info('Midtrans Snap create transaction', [
+            'order_id'      => $orderId,
+            'amount'        => $grossAmount,
+            'is_production' => Config::$isProduction,
         ]);
 
-        try {
-            $result = CoreApi::charge($params);
-        } finally {
-            // Reset idempotency key so it doesn't bleed into other calls
-            Config::$paymentIdempotencyKey = null;
-        }
-
-        $qrCodeUrl   = '';
-        $deeplinkUrl = '';
-
-        if (isset($result->actions)) {
-            foreach ($result->actions as $action) {
-                if ($action->name === 'generate-qr-code') {
-                    $qrCodeUrl = $action->url;
-                }
-                if ($action->name === 'deeplink-redirect') {
-                    $deeplinkUrl = $action->url;
-                }
-            }
-        }
+        $result = Snap::createTransaction($params);
 
         return [
-            'qr_code_url'    => $qrCodeUrl,
-            'deeplink_url'   => $deeplinkUrl,
-            'transaction_id' => $result->transaction_id ?? '',
-            'order_id'       => $result->order_id ?? $orderId,
+            'snap_token'       => $result->token,
+            'snap_redirect_url' => $result->redirect_url,
+            'order_id'         => $orderId,
         ];
     }
 
@@ -124,11 +99,11 @@ class MidtransService
     public function mapStatus(string $midtransStatus, ?string $fraudStatus = null): string
     {
         return match ($midtransStatus) {
-            'capture'  => ($fraudStatus === 'accept' || $fraudStatus === null) ? 'success' : 'failed',
+            'capture'    => ($fraudStatus === 'accept' || $fraudStatus === null) ? 'success' : 'failed',
             'settlement' => 'success',
-            'pending'  => 'pending',
+            'pending'    => 'pending',
             'deny', 'cancel', 'expire', 'failure' => 'failed',
-            default    => 'pending',
+            default      => 'pending',
         };
     }
 }

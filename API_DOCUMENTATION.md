@@ -237,17 +237,16 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 **Example Response (201) — gopay**
 ```json
 {
+  "success": true,
   "data": {
-    "transaction": {
-      "id": 6,
-      "amount": 375000,
-      "status": "pending",
-      "midtrans_qr_code_url": "https://api.midtrans.com/v2/gopay/...",
-      "midtrans_deeplink_url": "https://gojek.com/..."
-    }
+    "transaction": { "id": 6, "amount": 375000, "status": "pending" },
+    "snap_token": "d379aa71-99eb-4dd1-b9bb-eefe813746e9",
+    "snap_redirect_url": "https://app.midtrans.com/snap/v3/redirection/d379aa71-..."
   }
 }
 ```
+
+> Use `snap_token` with the **Midtrans Snap SDK** (mobile) or open `snap_redirect_url` in a WebView. The Snap page handles GoPay and QRIS payment selection.
 
 ---
 
@@ -354,7 +353,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 ---
 
 ### GET /payments/{transaction}/status
-*Requires verified investor.* Poll GoPay payment status.
+*Requires verified investor.* Poll Snap payment status.
 
 **Example Response (200)**
 ```json
@@ -701,7 +700,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 ### POST /payments/midtrans/callback
 **Public** — called by Midtrans servers only. Do not call from mobile app.  
 Verifies SHA-512 signature and updates transaction status automatically.  
-Triggers referral rewards when an initial deposit is confirmed via GoPay.
+Triggers referral rewards when an initial deposit is confirmed via Snap.
 
 ---
 

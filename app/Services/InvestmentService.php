@@ -136,15 +136,14 @@ class InvestmentService
         if ($paymentMethod === 'gopay') {
             $orderId = 'INV-' . $investment->id . '-' . time();
             try {
-                $gopayResult = $this->midtransService->createGopayCharge(
+                $snapResult = $this->midtransService->createSnapToken(
                     $orderId,
                     (int) ($amount + $investment->admin_fee),
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
-                $transactionData['midtrans_order_id'] = $orderId;
-                $transactionData['midtrans_transaction_id'] = $gopayResult['transaction_id'];
-                $transactionData['midtrans_qr_code_url'] = $gopayResult['qr_code_url'];
-                $transactionData['midtrans_deeplink_url'] = $gopayResult['deeplink_url'];
+                $transactionData['midtrans_order_id']     = $orderId;
+                $transactionData['midtrans_qr_code_url']  = $snapResult['snap_redirect_url'];
+                $transactionData['midtrans_deeplink_url'] = $snapResult['snap_token'];
             } catch (Exception $e) {
                 // Log error but don't fail — admin can retry
             }

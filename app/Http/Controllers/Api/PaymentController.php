@@ -60,21 +60,25 @@ class PaymentController extends Controller
 
         if ($validated['payment_method'] === 'gopay') {
             try {
-                $gopay = $this->midtransService->createGopayCharge(
+                $snap = $this->midtransService->createSnapToken(
                     $orderId,
                     $depositAmount,
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
-                $transactionData['midtrans_transaction_id'] = $gopay['transaction_id'];
-                $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
-                $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
+                $transactionData['midtrans_qr_code_url']  = $snap['snap_redirect_url'];
+                $transactionData['midtrans_deeplink_url'] = $snap['snap_token'];
             } catch (Exception $e) {
-                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
+                return $this->error('Failed to create Snap payment: ' . $e->getMessage());
             }
         }
 
         $transaction   = Transaction::create($transactionData);
         $responseData  = ['transaction' => $transaction];
+
+        if ($validated['payment_method'] === 'gopay') {
+            $responseData['snap_token']       = $transaction->midtrans_deeplink_url;
+            $responseData['snap_redirect_url'] = $transaction->midtrans_qr_code_url;
+        }
 
         if ($validated['payment_method'] === 'manual_transfer') {
             $responseData['bank_details'] = [
@@ -151,21 +155,25 @@ class PaymentController extends Controller
 
         if ($validated['payment_method'] === 'gopay') {
             try {
-                $gopay = $this->midtransService->createGopayCharge(
+                $snap = $this->midtransService->createSnapToken(
                     $orderId,
                     (int) $paymentAmount,
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
-                $transactionData['midtrans_transaction_id'] = $gopay['transaction_id'];
-                $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
-                $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
+                $transactionData['midtrans_qr_code_url']  = $snap['snap_redirect_url'];
+                $transactionData['midtrans_deeplink_url'] = $snap['snap_token'];
             } catch (Exception $e) {
-                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
+                return $this->error('Failed to create Snap payment: ' . $e->getMessage());
             }
         }
 
         $transaction  = Transaction::create($transactionData);
         $responseData = ['transaction' => $transaction, 'installment' => $nextInstallment];
+
+        if ($validated['payment_method'] === 'gopay') {
+            $responseData['snap_token']       = $transaction->midtrans_deeplink_url;
+            $responseData['snap_redirect_url'] = $transaction->midtrans_qr_code_url;
+        }
 
         if ($validated['payment_method'] === 'manual_transfer') {
             $responseData['bank_details'] = [
