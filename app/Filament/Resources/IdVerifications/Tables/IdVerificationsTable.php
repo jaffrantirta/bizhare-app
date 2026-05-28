@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\IdVerifications\Tables;
 
-use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -16,29 +16,43 @@ class IdVerificationsTable
         return $table
             ->columns([
                 TextColumn::make('user.name')
-                    ->label('User')
+                    ->label('Username')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('full_name')
+                    ->label('Nama Lengkap')
+                    ->searchable()
+                    ->default('-'),
                 TextColumn::make('user.email')
                     ->label('Email')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('id_type')
+                    ->label('Jenis ID')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => strtoupper($state)),
                 TextColumn::make('id_number')
-                    ->label('ID Number')
+                    ->label('Nomor Identitas')
                     ->searchable(),
+                TextColumn::make('province')
+                    ->label('Provinsi')
+                    ->toggleable(),
+                TextColumn::make('kabupaten')
+                    ->label('Kab/Kota')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'approved' => 'success',
-                        'pending' => 'warning',
+                        'pending'  => 'warning',
                         'rejected' => 'danger',
                     }),
                 TextColumn::make('created_at')
+                    ->label('Diajukan')
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('reviewed_at')
+                    ->label('Direview')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
@@ -46,12 +60,13 @@ class IdVerificationsTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
+                        'pending'  => 'Pending',
                         'approved' => 'Approved',
                         'rejected' => 'Rejected',
                     ]),
             ])
             ->recordActions([
+                ViewAction::make(),
                 Action::make('approve')
                     ->label('Approve')
                     ->color('success')
@@ -60,14 +75,21 @@ class IdVerificationsTable
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update([
-                            'status' => 'approved',
+                            'status'      => 'approved',
                             'reviewed_by' => Auth::id(),
                             'reviewed_at' => now(),
                         ]);
-                        $record->user->update([
-                            'is_verified' => true,
+
+                        $userUpdates = [
+                            'is_verified'         => true,
                             'verification_status' => 'approved',
-                        ]);
+                        ];
+
+                        if (!empty($record->full_name)) {
+                            $userUpdates['name'] = $record->full_name;
+                        }
+
+                        $record->user->update($userUpdates);
                     }),
                 Action::make('reject')
                     ->label('Reject')
@@ -77,17 +99,17 @@ class IdVerificationsTable
                     ->form([
                         \Filament\Forms\Components\Textarea::make('rejection_reason')
                             ->required()
-                            ->label('Reason for rejection'),
+                            ->label('Alasan penolakan'),
                     ])
                     ->action(function ($record, array $data) {
                         $record->update([
-                            'status' => 'rejected',
+                            'status'           => 'rejected',
                             'rejection_reason' => $data['rejection_reason'],
-                            'reviewed_by' => Auth::id(),
-                            'reviewed_at' => now(),
+                            'reviewed_by'      => Auth::id(),
+                            'reviewed_at'      => now(),
                         ]);
                         $record->user->update([
-                            'is_verified' => false,
+                            'is_verified'         => false,
                             'verification_status' => 'rejected',
                         ]);
                     }),

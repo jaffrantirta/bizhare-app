@@ -113,15 +113,48 @@ Register a new user. Returns auth token and auto-generated referral code.
 ## Onboarding
 
 ### POST /verification/upload
-*Requires auth.* Upload identity document for KYC verification.
+*Requires auth.* Upload identity document for KYC verification. Re-submitting resets status to `pending`.
 
 **Request:** `multipart/form-data`
-| Field | Type | Required |
-|---|---|---|
-| id_type | enum: ktp, sim, passport | ✓ |
-| id_number | string | ✓ |
-| id_photo | image file (max 5 MB) | ✓ |
-| selfie_photo | image file (max 5 MB) | |
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id_type | enum: `ktp`, `sim`, `passport` | ✓ | Type of identity document |
+| id_number | string (max 50) | ✓ | NIK / SIM number / passport number |
+| id_photo | image file (max 5 MB) | ✓ | Photo of the identity document |
+| selfie_photo | image file (max 5 MB) | | Selfie holding the identity document |
+| full_name | string (max 255) | | Full name as printed on the document |
+| place_of_birth | string (max 255) | | City / district of birth |
+| date_of_birth | date (`YYYY-MM-DD`) | | Date of birth |
+| phone_number | string (max 20) | | Active phone number |
+| occupation | string (max 255) | | Current job / profession |
+| marital_status | enum: `single`, `married`, `divorced`, `widowed` | | Marital status |
+| province | string | | Province name (use values from Indonesian Regions reference below) |
+| kabupaten | string | | Kabupaten / Kota name |
+| kecamatan | string | | Kecamatan name |
+| address | string (max 1000) | | Full street address |
+
+> All fields except `id_type`, `id_number`, and `id_photo` are optional for backwards compatibility. Sending all fields is strongly recommended.
+
+**Example Request**
+```
+POST /api/verification/upload
+Content-Type: multipart/form-data
+
+id_type=ktp
+id_number=3271010101900001
+id_photo=<file>
+selfie_photo=<file>
+full_name=Budi Santoso
+place_of_birth=Bandung
+date_of_birth=1990-01-01
+phone_number=081234567890
+occupation=Wiraswasta
+marital_status=married
+province=jawa_barat
+kabupaten=Kab. Bandung
+kecamatan=Dayeuhkolot
+address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
+```
 
 **Example Response (201)**
 ```json
@@ -129,10 +162,28 @@ Register a new user. Returns auth token and auto-generated referral code.
   "success": true,
   "message": "ID verification documents uploaded successfully. Please wait for review.",
   "data": {
-    "verification": { "id": 1, "id_type": "ktp", "status": "pending" }
+    "verification": {
+      "id": 1,
+      "id_type": "ktp",
+      "id_number": "3271010101900001",
+      "full_name": "Budi Santoso",
+      "place_of_birth": "Bandung",
+      "date_of_birth": "1990-01-01",
+      "phone_number": "081234567890",
+      "occupation": "Wiraswasta",
+      "marital_status": "married",
+      "province": "jawa_barat",
+      "kabupaten": "Kab. Bandung",
+      "kecamatan": "Dayeuhkolot",
+      "address": "Jl. Soekarno Hatta No. 123, RT 02/RW 05",
+      "status": "pending",
+      "created_at": "2026-05-28T10:00:00Z"
+    }
   }
 }
 ```
+
+> When an admin **approves** the verification, the user's `name` is automatically replaced with `full_name` from this submission.
 
 ---
 
@@ -259,12 +310,19 @@ Register a new user. Returns auth token and auto-generated referral code.
 ### POST /businesses/{id}/invest
 *Requires verified investor.*
 
+> **One investment per business** — an investor may only hold one active or pending investment per business. Attempting a second investment returns a 422 error. A rejected or cancelled investment does not block re-investment.
+
 **Request Body**
 | Field | Type | Required |
 |---|---|---|
-| payment_type | enum: full, installment | ✓ |
-| tenure_months | integer (1–12) | required if installment |
-| payment_method | enum: manual_transfer, qris | ✓ |
+| payment_type | enum: `full`, `installment` | ✓ |
+| tenure_months | integer (1–12) | required if `installment` |
+| payment_method | enum: `manual_transfer`, `qris` | ✓ |
+
+**Error — already invested (422)**
+```json
+{ "success": false, "message": "You have already invested in this business." }
+```
 
 **Example Response (201)**
 ```json
@@ -564,39 +622,77 @@ Register a new user. Returns auth token and auto-generated referral code.
 ## Notifications
 
 ### GET /notifications
-*Requires verified investor.* Paginated list including installment reminders and system notifications.
+*Requires auth.* Paginated list of all notifications for the authenticated user.
+
+**Query Parameters**
+| Param | Description |
+|---|---|
+| per_page | Items per page (default: 15) |
 
 **Example Response (200)**
 ```json
 {
+  "success": true,
   "data": {
     "data": [
       {
-        "id": "uuid",
-        "type": "App\\Notifications\\InstallmentReminderNotification",
+        "id": "uuid-string",
+        "type": "App\\Notifications\\TopUpSuccessNotification",
         "data": {
-          "business_name": "Warung Makan Pak Haji",
-          "due_date": "2026-06-01",
-          "amount": 126250,
-          "month_number": 2
+          "type": "topup_success",
+          "title": "Top Up Berhasil",
+          "message": "Top up sebesar Rp 375.000 telah dikonfirmasi.",
+          "transaction_id": 5,
+          "amount": 375000
         },
         "read_at": null,
-        "created_at": "2026-05-29T08:00:00Z"
+        "created_at": "2026-05-28T10:00:00Z"
       }
-    ]
+    ],
+    "total": 12,
+    "per_page": 15,
+    "current_page": 1
   }
 }
 ```
 
+**Notification `data` payload by type**
+
+| `data.type` | Sent when | Key fields in `data` |
+|---|---|---|
+| `topup_success` | Initial deposit confirmed by admin | `transaction_id`, `amount` |
+| `topup_failed` | Initial deposit rejected by admin | `transaction_id`, `amount` |
+| `investment_payment_success` | Investment / installment payment confirmed | `transaction_id`, `payment_type`, `amount` |
+| `investment_payment_failed` | Investment / installment payment rejected | `transaction_id`, `payment_type`, `amount` |
+| `withdrawal_submitted` | Withdrawal request received | `withdrawal_id`, `amount`, `bank_name`, `account_number` |
+| `withdrawal_approved` | Admin approves withdrawal | `withdrawal_id`, `amount` |
+| `withdrawal_processed` | Admin marks withdrawal as sent | `withdrawal_id`, `amount`, `bank_name`, `account_number` |
+| `withdrawal_rejected` | Admin rejects withdrawal (balance refunded) | `withdrawal_id`, `amount`, `notes` |
+| `referral_reward` | Referral reward credited to balance | `transaction_id`, `amount`, `new_user_name`, `level` |
+| `profit_received` | Profit distribution credited to balance | `transaction_id`, `amount`, `business_id`, `business_name` |
+| `installment_reminder` | Installment due date approaching (scheduled) | `investment_id`, `installment_id`, `amount`, `due_date`, `month_number`, `business_name` |
+
+> Every notification includes a `title` and `message` field suitable for display in push notification banners.
+
 ---
 
 ### POST /notifications/{id}/read
-*Requires verified investor.* Mark a single notification as read.
+*Requires auth.* Mark a single notification as read.
+
+**Example Response (200)**
+```json
+{ "success": true, "message": "Notification marked as read." }
+```
 
 ---
 
 ### POST /notifications/mark-all-read
-*Requires verified investor.* Mark all notifications as read.
+*Requires auth.* Mark all unread notifications as read.
+
+**Example Response (200)**
+```json
+{ "success": true, "message": "All notifications marked as read." }
+```
 
 ---
 
@@ -644,3 +740,63 @@ Triggers referral rewards when an initial deposit is confirmed via QRIS.
 | referral_reward | Reward from multi-level referral chain |
 | withdrawal | Balance withdrawal request |
 | refund | Refunded payment |
+
+---
+
+## Indonesian Regions Reference
+
+Use these `province` key values in `POST /verification/upload`. The corresponding kabupaten/kota list is filtered by the selected province on the admin side.
+
+| Key | Province Name |
+|---|---|
+| `aceh` | Aceh |
+| `sumatera_utara` | Sumatera Utara |
+| `sumatera_barat` | Sumatera Barat |
+| `riau` | Riau |
+| `jambi` | Jambi |
+| `sumatera_selatan` | Sumatera Selatan |
+| `bengkulu` | Bengkulu |
+| `lampung` | Lampung |
+| `bangka_belitung` | Kepulauan Bangka Belitung |
+| `kepulauan_riau` | Kepulauan Riau |
+| `dki_jakarta` | DKI Jakarta |
+| `jawa_barat` | Jawa Barat |
+| `jawa_tengah` | Jawa Tengah |
+| `di_yogyakarta` | DI Yogyakarta |
+| `jawa_timur` | Jawa Timur |
+| `banten` | Banten |
+| `bali` | Bali |
+| `nusa_tenggara_barat` | Nusa Tenggara Barat |
+| `nusa_tenggara_timur` | Nusa Tenggara Timur |
+| `kalimantan_barat` | Kalimantan Barat |
+| `kalimantan_tengah` | Kalimantan Tengah |
+| `kalimantan_selatan` | Kalimantan Selatan |
+| `kalimantan_timur` | Kalimantan Timur |
+| `kalimantan_utara` | Kalimantan Utara |
+| `sulawesi_utara` | Sulawesi Utara |
+| `sulawesi_tengah` | Sulawesi Tengah |
+| `sulawesi_selatan` | Sulawesi Selatan |
+| `sulawesi_tenggara` | Sulawesi Tenggara |
+| `gorontalo` | Gorontalo |
+| `sulawesi_barat` | Sulawesi Barat |
+| `maluku` | Maluku |
+| `maluku_utara` | Maluku Utara |
+| `papua_barat` | Papua Barat |
+| `papua_barat_daya` | Papua Barat Daya |
+| `papua` | Papua |
+| `papua_selatan` | Papua Selatan |
+| `papua_tengah` | Papua Tengah |
+| `papua_pegunungan` | Papua Pegunungan |
+
+For `kabupaten`, send the full label string (e.g. `"Kab. Bandung"`, `"Kota Surabaya"`). For `kecamatan`, send free text.
+
+---
+
+## Marital Status Reference
+
+| Value | Label |
+|---|---|
+| `single` | Belum Menikah |
+| `married` | Menikah |
+| `divorced` | Cerai Hidup |
+| `widowed` | Cerai Mati |

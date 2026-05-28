@@ -11,6 +11,16 @@ class IdVerification extends Model
         'user_id',
         'id_type',
         'id_number',
+        'full_name',
+        'place_of_birth',
+        'date_of_birth',
+        'phone_number',
+        'occupation',
+        'marital_status',
+        'province',
+        'kabupaten',
+        'kecamatan',
+        'address',
         'id_photo',
         'selfie_photo',
         'status',
@@ -22,7 +32,8 @@ class IdVerification extends Model
     protected function casts(): array
     {
         return [
-            'reviewed_at' => 'datetime',
+            'date_of_birth' => 'date',
+            'reviewed_at'   => 'datetime',
         ];
     }
 
