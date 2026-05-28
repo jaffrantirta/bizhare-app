@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('verified.investor')->group(function () {
 
         // Investments
-        Route::post('/businesses/{id}/invest', [InvestmentController::class, 'store']);
+        Route::post('/businesses/{businessId}/invest', [InvestmentController::class, 'store']);
         Route::get('/investments',             [InvestmentController::class, 'index']);
         Route::get('/investments/{id}',        [InvestmentController::class, 'show']);
 
