@@ -456,6 +456,111 @@ Register a new user. Returns auth token and auto-generated referral code.
 
 ---
 
+## Portfolio
+
+### GET /api/portfolio
+*Requires verified investor.* Summary + full list of investor's business investments.
+
+**Example Response (200)**
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "total_investments": 3,
+      "active_investments": 2,
+      "pending_investments": 1,
+      "total_invested": 3000000,
+      "total_profit": 250000,
+      "current_balance": 750000
+    },
+    "investments": [
+      {
+        "id": 1,
+        "status": "active",
+        "payment_type": "installment",
+        "total_amount": 1500000,
+        "admin_fee": 15000,
+        "profit_received": 75000,
+        "installment_progress": {
+          "months_paid": 3,
+          "tenure_months": 12,
+          "remaining": 9,
+          "next_due_date": "2026-07-01",
+          "next_amount": 126250,
+          "completed": false
+        },
+        "joined_at": "2026-01-15",
+        "business": {
+          "id": 1,
+          "name": "Warung Makan Pak Haji",
+          "category": "Food & Beverage",
+          "location": "Jakarta Selatan",
+          "status": "active",
+          "image_url": "https://your-domain.com/storage/businesses/img.jpg",
+          "current_investors": 8,
+          "target_investors": 10,
+          "activation_date": "2026-01-20"
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET /api/portfolio/{id}
+*Requires verified investor.* Full detail of a single investment including installment schedule, profit history, and payment history.
+
+**Example Response (200)**
+```json
+{
+  "success": true,
+  "data": {
+    "investment": { ... },
+    "installment_schedule": [
+      {
+        "month_number": 1,
+        "amount": 126250,
+        "status": "paid",
+        "due_date": "2026-02-01",
+        "paid_at": "2026-01-30T10:00:00Z"
+      },
+      {
+        "month_number": 2,
+        "amount": 126250,
+        "status": "pending",
+        "due_date": "2026-03-01",
+        "paid_at": null
+      }
+    ],
+    "profit_history": [
+      {
+        "id": 12,
+        "amount": 75000,
+        "notes": "Profit distribution for business: Warung Makan Pak Haji",
+        "confirmed_at": "2026-04-01T08:00:00Z"
+      }
+    ],
+    "payment_history": [
+      {
+        "id": 7,
+        "type": "installment",
+        "amount": 126250,
+        "status": "success",
+        "payment_method": "manual_transfer",
+        "confirmed_at": "2026-01-30T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+> `installment_schedule` is `null` for full-payment investments.
+
+---
+
 ## Notifications
 
 ### GET /notifications

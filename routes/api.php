@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MidtransWebhookController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\ReferralController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/businesses/{businessId}/invest', [InvestmentController::class, 'store']);
         Route::get('/investments',             [InvestmentController::class, 'index']);
         Route::get('/investments/{id}',        [InvestmentController::class, 'show']);
+
+        // Portfolio
+        Route::get('/portfolio',     [PortfolioController::class, 'index']);
+        Route::get('/portfolio/{id}', [PortfolioController::class, 'show']);
 
         // Payments
         Route::post('/payments/installment/{investment}', [PaymentController::class, 'payInstallment']);
