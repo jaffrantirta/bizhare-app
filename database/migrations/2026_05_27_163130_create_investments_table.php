@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('tenure_months')->nullable();
             $table->integer('months_paid')->default(0);
             $table->enum('status', ['pending', 'active', 'completed', 'cancelled'])->default('pending');
-            $table->enum('payment_method', ['manual_transfer', 'qris'])->default('manual_transfer');
+            $table->enum('payment_method', ['manual_transfer', 'gopay'])->default('manual_transfer');
             $table->timestamps();
         });
     }

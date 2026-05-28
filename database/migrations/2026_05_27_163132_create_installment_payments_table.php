@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending');
             $table->date('due_date');
             $table->timestamp('paid_at')->nullable();
-            $table->enum('payment_method', ['manual_transfer', 'qris'])->nullable();
+            $table->enum('payment_method', ['manual_transfer', 'gopay'])->nullable();
             $table->timestamps();
         });
     }

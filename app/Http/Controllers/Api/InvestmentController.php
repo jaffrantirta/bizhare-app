@@ -43,11 +43,15 @@ class InvestmentController extends Controller
             'business_id'    => $businessId ? 'nullable' : 'required|exists:businesses,id',
             'payment_type'   => 'required|in:full,installment',
             'tenure_months'  => 'required_if:payment_type,installment|nullable|integer|min:1|max:12',
-            'payment_method' => 'required|in:manual_transfer,qris',
+            'payment_method' => 'required|in:manual_transfer,gopay,qris',
         ]);
 
         if ($businessId) {
             $validated['business_id'] = $businessId;
+        }
+
+        if (($validated['payment_method'] ?? null) === 'qris') {
+            $validated['payment_method'] = 'gopay';
         }
 
         Log::info('[InvestmentController@store] validated', $validated);

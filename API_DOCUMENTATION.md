@@ -215,7 +215,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 **Request Body**
 | Field | Type | Required |
 |---|---|---|
-| payment_method | enum: manual_transfer, qris | ✓ |
+| payment_method | enum: manual_transfer, gopay | ✓ |
 
 **Example Response (201) — manual_transfer**
 ```json
@@ -234,7 +234,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 }
 ```
 
-**Example Response (201) — qris**
+**Example Response (201) — gopay**
 ```json
 {
   "data": {
@@ -242,7 +242,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
       "id": 6,
       "amount": 375000,
       "status": "pending",
-      "midtrans_qr_code_url": "https://api.midtrans.com/v2/qris/...",
+      "midtrans_qr_code_url": "https://api.midtrans.com/v2/gopay/...",
       "midtrans_deeplink_url": "https://gojek.com/..."
     }
   }
@@ -317,7 +317,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 |---|---|---|
 | payment_type | enum: `full`, `installment` | ✓ |
 | tenure_months | integer (1–12) | required if `installment` |
-| payment_method | enum: `manual_transfer`, `qris` | ✓ |
+| payment_method | enum: `manual_transfer`, `gopay` | ✓ |
 
 **Error — already invested (422)**
 ```json
@@ -349,12 +349,12 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 **Request Body**
 | Field | Type | Required |
 |---|---|---|
-| payment_method | enum: manual_transfer, qris | ✓ |
+| payment_method | enum: manual_transfer, gopay | ✓ |
 
 ---
 
 ### GET /payments/{transaction}/status
-*Requires verified investor.* Poll QRIS payment status.
+*Requires verified investor.* Poll GoPay payment status.
 
 **Example Response (200)**
 ```json
@@ -701,7 +701,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 ### POST /payments/midtrans/callback
 **Public** — called by Midtrans servers only. Do not call from mobile app.  
 Verifies SHA-512 signature and updates transaction status automatically.  
-Triggers referral rewards when an initial deposit is confirmed via QRIS.
+Triggers referral rewards when an initial deposit is confirmed via GoPay.
 
 ---
 

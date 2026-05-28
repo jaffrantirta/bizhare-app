@@ -14,12 +14,12 @@ class PaymentChannelStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $qrisTotal = Transaction::where('payment_method', 'qris')
+        $gopayTotal = Transaction::where('payment_method', 'gopay')
             ->where('status', 'success')
             ->whereIn('type', self::$incomingTypes)
             ->sum('amount');
 
-        $qrisCount = Transaction::where('payment_method', 'qris')
+        $gopayCount = Transaction::where('payment_method', 'gopay')
             ->where('status', 'success')
             ->whereIn('type', self::$incomingTypes)
             ->count();
@@ -42,11 +42,11 @@ class PaymentChannelStatsWidget extends BaseWidget
             ->where('status', 'success')
             ->count();
 
-        $netFlow = ($qrisTotal + $manualTotal) - $withdrawalTotal;
+        $netFlow = ($gopayTotal + $manualTotal) - $withdrawalTotal;
 
         return [
-            Stat::make('Masuk via QRIS / Midtrans', 'Rp ' . number_format($qrisTotal, 0, ',', '.'))
-                ->description($qrisCount . ' transaksi berhasil')
+            Stat::make('Masuk via GoPay / Midtrans', 'Rp ' . number_format($gopayTotal, 0, ',', '.'))
+                ->description($gopayCount . ' transaksi berhasil')
                 ->descriptionIcon('heroicon-o-qr-code')
                 ->color('success'),
 

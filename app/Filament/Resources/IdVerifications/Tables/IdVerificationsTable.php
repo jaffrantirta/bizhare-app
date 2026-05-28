@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\IdVerifications\Tables;
 
+use App\Notifications\IdVerificationApprovedNotification;
+use App\Notifications\IdVerificationRejectedNotification;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -90,6 +92,7 @@ class IdVerificationsTable
                         }
 
                         $record->user->update($userUpdates);
+                        $record->user->notify(new IdVerificationApprovedNotification());
                     }),
                 Action::make('reject')
                     ->label('Reject')
@@ -112,6 +115,7 @@ class IdVerificationsTable
                             'is_verified'         => false,
                             'verification_status' => 'rejected',
                         ]);
+                        $record->user->notify(new IdVerificationRejectedNotification($data['rejection_reason']));
                     }),
             ])
             ->defaultSort('created_at', 'desc');

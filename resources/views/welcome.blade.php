@@ -738,7 +738,7 @@
         <div class="step">
           <div class="step-num" data-icon="💳">3</div>
           <h3>Lakukan Pembayaran</h3>
-          <p>Bayar via transfer bank atau scan QRIS. Bisa cicil 1&ndash;12 bulan sesuai kemampuan.</p>
+          <p>Bayar via transfer bank atau bayar via GoPay. Bisa cicil 1&ndash;12 bulan sesuai kemampuan.</p>
         </div>
         <div class="step">
           <div class="step-num" data-icon="💰">4</div>
@@ -911,7 +911,7 @@
           <div class="trust-pill" role="listitem"><span class="icon" aria-hidden="true">📜</span> Legalitas Terjamin oleh Koperasi</div>
           <div class="trust-pill" role="listitem"><span class="icon" aria-hidden="true">📊</span> Laporan Keuangan Transparan</div>
           <div class="trust-pill" role="listitem"><span class="icon" aria-hidden="true">🏢</span> Bisnis Terverifikasi Fisik</div>
-          <div class="trust-pill" role="listitem"><span class="icon" aria-hidden="true">💳</span> Pembayaran via Bank &amp; QRIS</div>
+          <div class="trust-pill" role="listitem"><span class="icon" aria-hidden="true">💳</span> Pembayaran via Bank &amp; GoPay</div>
         </div>
       </div>
     </div>

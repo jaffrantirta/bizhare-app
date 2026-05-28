@@ -133,18 +133,18 @@ class InvestmentService
             'payment_method' => $paymentMethod,
         ];
 
-        if ($paymentMethod === 'qris') {
+        if ($paymentMethod === 'gopay') {
             $orderId = 'INV-' . $investment->id . '-' . time();
             try {
-                $qrisResult = $this->midtransService->createQrisCharge(
+                $gopayResult = $this->midtransService->createGopayCharge(
                     $orderId,
                     (int) ($amount + $investment->admin_fee),
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
                 $transactionData['midtrans_order_id'] = $orderId;
-                $transactionData['midtrans_transaction_id'] = $qrisResult['transaction_id'];
-                $transactionData['midtrans_qr_code_url'] = $qrisResult['qr_code_url'];
-                $transactionData['midtrans_deeplink_url'] = $qrisResult['deeplink_url'];
+                $transactionData['midtrans_transaction_id'] = $gopayResult['transaction_id'];
+                $transactionData['midtrans_qr_code_url'] = $gopayResult['qr_code_url'];
+                $transactionData['midtrans_deeplink_url'] = $gopayResult['deeplink_url'];
             } catch (Exception $e) {
                 // Log error but don't fail — admin can retry
             }

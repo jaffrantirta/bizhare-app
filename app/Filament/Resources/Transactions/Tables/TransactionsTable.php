@@ -89,7 +89,7 @@ class TransactionsTable
                 SelectFilter::make('payment_method')
                     ->options([
                         'manual_transfer' => 'Manual Transfer',
-                        'qris'            => 'QRIS',
+                        'gopay' => 'GoPay',
                     ]),
             ])
             ->recordActions([

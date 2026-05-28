@@ -443,13 +443,30 @@ Add this line:
 
 ## 13. Storage & Permissions
 
+This setup assumes:
+- Server user: `ubuntu` (owns the project files, runs git/composer)
+- PHP-FPM user: `www-data` (default Ubuntu — runs the app)
+
 ```bash
 cd /var/www/mybisnis
 
-# Directories writable by PHP-FPM
-sudo chown -R deployer:www-data storage bootstrap/cache
+# Ensure all required subdirectories exist
+mkdir -p storage/framework/{cache/data,sessions,testing,views}
+mkdir -p storage/app/public
+mkdir -p storage/logs
+mkdir -p bootstrap/cache
+
+# Owner = ubuntu, group = www-data
+# 775 = owner rwx, group rwx, others rx
+sudo chown -R ubuntu:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
+
+# Project root must be traversable by www-data
+sudo chmod 755 /var/www/mybisnis
 ```
+
+> **`tempnam()` warning?** PHP-FPM can't write `storage/` and falls back to `/tmp/`.  
+> Fix: re-run the `chown` + `chmod` above, then `php artisan optimize:clear`.
 
 ---
 
@@ -494,7 +511,7 @@ Mail::raw('Test email', fn($m) => $m->to('you@example.com')->subject('Test'));
 
 ## 15. Midtrans Webhook
 
-Midtrans calls `POST /api/payments/midtrans/callback` to confirm QRIS payments.
+Midtrans calls `POST /api/payments/midtrans/callback` to confirm GoPay payments.
 
 1. Log in to [Midtrans Dashboard](https://dashboard.midtrans.com)
 2. Go to **Settings → Configuration**

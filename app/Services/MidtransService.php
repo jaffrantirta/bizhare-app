@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
 use Midtrans\CoreApi;
 use Midtrans\Transaction;
@@ -18,7 +19,7 @@ class MidtransService
     }
 
     /**
-     * Create QRIS charge via GoPay payment_type
+     * Create GoPay charge via GoPay payment_type
      *
      * @param string $orderId
      * @param int $grossAmount Amount in IDR
@@ -26,7 +27,7 @@ class MidtransService
      * @return array{qr_code_url: string, deeplink_url: string, transaction_id: string, order_id: string}
      * @throws Exception
      */
-    public function createQrisCharge(string $orderId, int $grossAmount, array $customerDetails = []): array
+    public function createGopayCharge(string $orderId, int $grossAmount, array $customerDetails = []): array
     {
         $params = [
             'payment_type' => 'gopay',
@@ -47,6 +48,12 @@ class MidtransService
         if (!empty($customerDetails)) {
             $params['customer_details'] = $customerDetails;
         }
+
+        Log::info('Midtrans GoPay charge request', [
+            'order_id'     => $orderId,
+            'amount'       => $grossAmount,
+            'is_production' => Config::$isProduction,
+        ]);
 
         $result = CoreApi::charge($params);
 

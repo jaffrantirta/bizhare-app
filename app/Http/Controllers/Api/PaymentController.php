@@ -38,8 +38,13 @@ class PaymentController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => 'required|in:manual_transfer,qris',
+            'payment_method' => 'required|in:manual_transfer,gopay,qris',
         ]);
+
+        // normalise legacy 'qris' value from older mobile app versions
+        if ($validated['payment_method'] === 'qris') {
+            $validated['payment_method'] = 'gopay';
+        }
 
         $depositAmount = (int) SystemSetting::get('initial_deposit_amount', 375000);
         $orderId       = 'DEP-' . $user->id . '-' . time();
@@ -53,18 +58,18 @@ class PaymentController extends Controller
             'midtrans_order_id' => $orderId,
         ];
 
-        if ($validated['payment_method'] === 'qris') {
+        if ($validated['payment_method'] === 'gopay') {
             try {
-                $qris = $this->midtransService->createQrisCharge(
+                $gopay = $this->midtransService->createGopayCharge(
                     $orderId,
                     $depositAmount,
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
-                $transactionData['midtrans_transaction_id'] = $qris['transaction_id'];
-                $transactionData['midtrans_qr_code_url']    = $qris['qr_code_url'];
-                $transactionData['midtrans_deeplink_url']   = $qris['deeplink_url'];
+                $transactionData['midtrans_transaction_id'] = $gopay['transaction_id'];
+                $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
+                $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
             } catch (Exception $e) {
-                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
+                return $this->error('Failed to create GoPay payment: ' . $e->getMessage());
             }
         }
 
@@ -124,8 +129,12 @@ class PaymentController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => 'required|in:manual_transfer,qris',
+            'payment_method' => 'required|in:manual_transfer,gopay,qris',
         ]);
+
+        if ($validated['payment_method'] === 'qris') {
+            $validated['payment_method'] = 'gopay';
+        }
 
         $paymentAmount = $nextInstallment->amount + $nextInstallment->admin_fee;
         $orderId       = 'INST-' . $investment->id . '-' . $nextInstallment->month_number . '-' . time();
@@ -140,18 +149,18 @@ class PaymentController extends Controller
             'midtrans_order_id' => $orderId,
         ];
 
-        if ($validated['payment_method'] === 'qris') {
+        if ($validated['payment_method'] === 'gopay') {
             try {
-                $qris = $this->midtransService->createQrisCharge(
+                $gopay = $this->midtransService->createGopayCharge(
                     $orderId,
                     (int) $paymentAmount,
                     ['first_name' => $user->name, 'email' => $user->email]
                 );
-                $transactionData['midtrans_transaction_id'] = $qris['transaction_id'];
-                $transactionData['midtrans_qr_code_url']    = $qris['qr_code_url'];
-                $transactionData['midtrans_deeplink_url']   = $qris['deeplink_url'];
+                $transactionData['midtrans_transaction_id'] = $gopay['transaction_id'];
+                $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
+                $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
             } catch (Exception $e) {
-                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
+                return $this->error('Failed to create GoPay payment: ' . $e->getMessage());
             }
         }
 
@@ -176,7 +185,7 @@ class PaymentController extends Controller
             return $this->forbidden('You do not have access to this transaction.');
         }
 
-        if ($transaction->payment_method === 'qris' && $transaction->midtrans_order_id && $transaction->isPending()) {
+        if ($transaction->payment_method === 'gopay' && $transaction->midtrans_order_id && $transaction->isPending()) {
             try {
                 $status         = $this->midtransService->getTransactionStatus($transaction->midtrans_order_id);
                 $internalStatus = $this->midtransService->mapStatus($status['transaction_status'], $status['fraud_status']);

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->enum('status', ['pending', 'success', 'failed', 'cancelled'])->default('pending');
             $table->string('reference_id')->nullable();
-            $table->enum('payment_method', ['manual_transfer', 'qris'])->nullable();
+            $table->enum('payment_method', ['manual_transfer', 'gopay'])->nullable();
             $table->string('midtrans_order_id')->nullable();
             $table->string('midtrans_transaction_id')->nullable();
             $table->string('midtrans_qr_code_url')->nullable();
