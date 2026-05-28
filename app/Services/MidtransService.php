@@ -36,7 +36,11 @@ class MidtransService
             ],
             'gopay' => [
                 'enable_callback' => true,
-                'callback_url' => config('app.url') . '/api/webhooks/midtrans',
+                'callback_url' => config('app.url') . '/api/payments/midtrans/callback',
+            ],
+            'custom_field1' => 'tabunganmasadepan.com',
+            'metadata' => [
+                'app' => 'tabunganmasadepan.com',
             ],
         ];
 
