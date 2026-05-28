@@ -25,12 +25,12 @@ class InvestmentPaymentSuccessNotification extends Notification implements Shoul
         $typeLabel = $this->transaction->type === 'installment' ? 'Cicilan' : 'Investasi';
 
         return (new MailMessage)
-            ->subject("Pembayaran {$typeLabel} Berhasil - BizShare")
+            ->subject("Pembayaran {$typeLabel} Berhasil - mybisnis")
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Pembayaran {$typeLabel} sebesar **Rp {$amount}** telah berhasil dikonfirmasi.")
             ->line('Investasi Anda sekarang aktif.')
             ->action('Lihat Portofolio', config('app.url'))
-            ->line('Terima kasih telah berinvestasi bersama BizShare!');
+            ->line('Terima kasih telah berinvestasi bersama mybisnis!');
     }
 
     public function toArray(object $notifiable): array

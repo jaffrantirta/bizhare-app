@@ -24,7 +24,7 @@ class WithdrawalRejectedNotification extends Notification implements ShouldQueue
         $amount = number_format($this->withdrawal->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Penarikan Ditolak - BizShare')
+            ->subject('Penarikan Ditolak - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Permintaan penarikan sebesar **Rp {$amount}** ditolak.")
             ->when($this->withdrawal->notes, fn ($mail) => $mail->line("Alasan: {$this->withdrawal->notes}"))

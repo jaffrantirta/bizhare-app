@@ -24,12 +24,12 @@ class WithdrawalApprovedNotification extends Notification implements ShouldQueue
         $amount = number_format($this->withdrawal->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Penarikan Disetujui - BizShare')
+            ->subject('Penarikan Disetujui - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Permintaan penarikan sebesar **Rp {$amount}** telah disetujui.")
             ->line("Dana akan segera ditransfer ke rekening **{$this->withdrawal->bank_name} - {$this->withdrawal->account_number}**.")
             ->action('Lihat Status', config('app.url'))
-            ->line('Terima kasih telah menggunakan BizShare!');
+            ->line('Terima kasih telah menggunakan mybisnis!');
     }
 
     public function toArray(object $notifiable): array

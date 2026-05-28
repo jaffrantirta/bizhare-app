@@ -1,4 +1,4 @@
-# VPS Setup Guide — Tabungan Masa Depan (BizShare)
+# VPS Setup Guide — mybisnis
 
 **Target:** Ubuntu 24.04 LTS  
 **Stack:** PHP 8.4 · Laravel 13 · MySQL 8 · Nginx · Supervisor
@@ -178,8 +178,8 @@ sudo mkdir -p /var/www
 sudo chown deployer:deployer /var/www
 
 cd /var/www
-git clone https://github.com/YOUR_ORG/bizhare-app.git bizhare
-cd bizhare
+git clone https://github.com/YOUR_ORG/mybisnis-app.git mybisnis
+cd mybisnis
 ```
 
 ### 6b. Install PHP dependencies
@@ -209,7 +209,7 @@ nano .env
 Set every value below:
 
 ```dotenv
-APP_NAME="Tabungan Masa Depan"
+APP_NAME="mybisnis"
 APP_ENV=production
 APP_KEY=                        # will be generated next
 APP_DEBUG=false
@@ -245,7 +245,7 @@ MAIL_USERNAME=your_smtp_user
 MAIL_PASSWORD=your_smtp_password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="noreply@yourdomain.com"
-MAIL_FROM_NAME="Tabungan Masa Depan"
+MAIL_FROM_NAME="mybisnis"
 
 # ─── Midtrans ──────────────────────────────────────────────────────────────
 MIDTRANS_SERVER_KEY=Mid-server-xxxxxxxxxxxx
@@ -287,7 +287,7 @@ php artisan storage:link
 ## 9. Configure Nginx Virtual Host
 
 ```bash
-sudo nano /etc/nginx/sites-available/bizhare
+sudo nano /etc/nginx/sites-available/mybisnis
 ```
 
 Paste the following (replace `yourdomain.com`):
@@ -303,7 +303,7 @@ server {
     listen 443 ssl http2;
     server_name yourdomain.com www.yourdomain.com;
 
-    root /var/www/bizhare/public;
+    root /var/www/mybisnis/public;
     index index.php;
 
     # SSL — will be filled by Certbot (step 10)
@@ -356,15 +356,15 @@ server {
         deny all;
     }
 
-    error_log  /var/log/nginx/bizhare_error.log;
-    access_log /var/log/nginx/bizhare_access.log;
+    error_log  /var/log/nginx/mybisnis_error.log;
+    access_log /var/log/nginx/mybisnis_access.log;
 }
 ```
 
 Enable it:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/bizhare /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mybisnis /etc/nginx/sites-enabled/
 sudo nginx -t          # must say "syntax is ok"
 sudo systemctl reload nginx
 ```
@@ -396,13 +396,13 @@ sudo apt install -y supervisor
 Create the worker config:
 
 ```bash
-sudo nano /etc/supervisor/conf.d/bizhare-worker.conf
+sudo nano /etc/supervisor/conf.d/mybisnis-worker.conf
 ```
 
 ```ini
-[program:bizhare-worker]
+[program:mybisnis-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/bizhare/artisan queue:work database --sleep=3 --tries=3 --timeout=90 --max-time=3600
+command=php /var/www/mybisnis/artisan queue:work database --sleep=3 --tries=3 --timeout=90 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -410,7 +410,7 @@ killasgroup=true
 user=deployer
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/bizhare/storage/logs/worker.log
+stdout_logfile=/var/www/mybisnis/storage/logs/worker.log
 stopwaitsecs=3600
 ```
 
@@ -419,7 +419,7 @@ Apply:
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start bizhare-worker:*
+sudo supervisorctl start mybisnis-worker:*
 sudo supervisorctl status
 ```
 
@@ -436,7 +436,7 @@ crontab -e
 Add this line:
 
 ```cron
-* * * * * cd /var/www/bizhare && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/mybisnis && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ---
@@ -444,7 +444,7 @@ Add this line:
 ## 13. Storage & Permissions
 
 ```bash
-cd /var/www/bizhare
+cd /var/www/mybisnis
 
 # Directories writable by PHP-FPM
 sudo chown -R deployer:www-data storage bootstrap/cache
@@ -518,7 +518,7 @@ MIDTRANS_IS_PRODUCTION=true
 Run these after every fresh deployment:
 
 ```bash
-cd /var/www/bizhare
+cd /var/www/mybisnis
 
 # Optimise for production
 php artisan config:cache
@@ -529,7 +529,7 @@ php artisan icons:cache       # Filament icon cache
 php artisan filament:cache-components
 
 # Confirm queue workers are running
-sudo supervisorctl status bizhare-worker:*
+sudo supervisorctl status mybisnis-worker:*
 
 # Confirm scheduler is registered
 php artisan schedule:list
@@ -549,7 +549,7 @@ curl -I https://yourdomain.com/admin  # should redirect to login
 Use this script every time you push new code:
 
 ```bash
-cd /var/www/bizhare
+cd /var/www/mybisnis
 
 # 1. Pull latest code
 git pull origin main
@@ -571,10 +571,10 @@ php artisan view:cache
 php artisan icons:cache
 
 # 6. Restart queue workers to pick up new code
-sudo supervisorctl restart bizhare-worker:*
+sudo supervisorctl restart mybisnis-worker:*
 ```
 
-> **Tip:** Save the above block as `/var/www/bizhare/deploy.sh`, run `chmod +x deploy.sh`, then deploy with `./deploy.sh`.
+> **Tip:** Save the above block as `/var/www/mybisnis/deploy.sh`, run `chmod +x deploy.sh`, then deploy with `./deploy.sh`.
 
 ---
 
@@ -584,10 +584,10 @@ sudo supervisorctl restart bizhare-worker:*
 |---|---|
 | View application logs | `tail -f storage/logs/laravel.log` |
 | View queue worker logs | `tail -f storage/logs/worker.log` |
-| View Nginx error logs | `sudo tail -f /var/log/nginx/bizhare_error.log` |
+| View Nginx error logs | `sudo tail -f /var/log/nginx/mybisnis_error.log` |
 | Restart PHP-FPM | `sudo systemctl restart php8.4-fpm` |
 | Restart Nginx | `sudo systemctl reload nginx` |
-| Restart queue workers | `sudo supervisorctl restart bizhare-worker:*` |
+| Restart queue workers | `sudo supervisorctl restart mybisnis-worker:*` |
 | Open Tinker REPL | `php artisan tinker` |
 | Check failed jobs | `php artisan queue:failed` |
 | Retry failed jobs | `php artisan queue:retry all` |

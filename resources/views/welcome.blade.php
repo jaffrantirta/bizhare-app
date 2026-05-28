@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Tabungan Masa Depan (TMP) — Investasi nyata pada bisnis terverifikasi, bagi hasil transparan, di bawah naungan Koperasi Sari Sedana." />
-  <title>Tabungan Masa Depan — Investasi Nyata, Bisnis Bisa Dilihat</title>
+  <meta name="description" content="mybisnis — Investasi nyata pada bisnis terverifikasi, bagi hasil transparan, di bawah naungan Koperasi Sari Sedana." />
+  <title>mybisnis — Investasi Nyata, Bisnis Bisa Dilihat</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -664,10 +664,10 @@
   <nav id="navbar" aria-label="Navigasi utama">
     <div class="container">
       <div class="nav-inner">
-        <a href="#" class="nav-logo" aria-label="Tabungan Masa Depan beranda">
-          <div class="nav-logo-mark">TMP</div>
+        <a href="#" class="nav-logo" aria-label="mybisnis beranda">
+          <div class="nav-logo-mark">MB</div>
           <div class="nav-logo-text">
-            <strong>Tabungan Masa Depan</strong>
+            <strong>mybisnis</strong>
             <span>Investasi Nyata, Hasil Pasti</span>
           </div>
         </a>
@@ -754,7 +754,7 @@
     <div class="container">
       <div class="features-header fade-in">
         <span class="section-label">Keunggulan</span>
-        <h2 class="section-title" id="features-title">Kenapa Pilih Tabungan Masa Depan?</h2>
+        <h2 class="section-title" id="features-title">Kenapa Pilih mybisnis?</h2>
         <p class="section-sub">Kami berbeda karena bisnis yang Anda danai nyata, bisa dikunjungi, dan dikelola oleh komunitas lokal.</p>
       </div>
       <div class="features-grid stagger">
@@ -927,10 +927,10 @@
       <div class="faq-list fade-in">
         <div class="faq-item">
           <button class="faq-q" aria-expanded="false">
-            Apakah investasi di TMP aman?
+            Apakah investasi di mybisnis aman?
             <span class="faq-icon" aria-hidden="true">+</span>
           </button>
-          <div class="faq-a"><p>Ya. TMP beroperasi di bawah naungan Koperasi Sari Sedana yang terdaftar dan berizin resmi. Setiap investor wajib melalui proses KYC sebelum bisa berinvestasi. Semua bisnis telah melalui verifikasi fisik oleh tim kami sebelum dibuka untuk pendanaan.</p></div>
+          <div class="faq-a"><p>Ya. mybisnis beroperasi di bawah naungan Koperasi Sari Sedana yang terdaftar dan berizin resmi. Setiap investor wajib melalui proses KYC sebelum bisa berinvestasi. Semua bisnis telah melalui verifikasi fisik oleh tim kami sebelum dibuka untuk pendanaan.</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-q" aria-expanded="false">
@@ -976,7 +976,7 @@
     <div class="container fade-in" style="text-align:center;">
       <span class="section-label" style="color:var(--gold);">Bergabung Sekarang</span>
       <h2 id="cta-title">Siap Mulai Investasi <em>Hari Ini?</em></h2>
-      <p class="cta-sub">Ribuan investor lokal sudah mempercayakan dananya kepada TMP. Giliran Anda membuat uang bekerja untuk masa depan.</p>
+      <p class="cta-sub">Ribuan investor lokal sudah mempercayakan dananya kepada mybisnis. Giliran Anda membuat uang bekerja untuk masa depan.</p>
       <a href="#" class="btn btn-primary" style="font-size:1.1rem;padding:1rem 2.25rem;">✦ Daftar Sekarang — Gratis</a>
       <p class="cta-legal">Investasi mengandung risiko. Bagi hasil sesuai kinerja bisnis. Tidak ada jaminan keuntungan tetap. Terdaftar di bawah Koperasi Sari Sedana.</p>
     </div>
@@ -988,8 +988,8 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <div class="nav-logo">
-            <div class="nav-logo-mark">TMP</div>
-            <div class="nav-logo-text"><strong>Tabungan Masa Depan</strong></div>
+            <div class="nav-logo-mark">MB</div>
+            <div class="nav-logo-text"><strong>mybisnis</strong></div>
           </div>
           <p class="tagline">Investasi nyata pada bisnis lokal yang bisa Anda lihat dan verifikasi sendiri.</p>
         </div>
@@ -1000,7 +1000,7 @@
           <a href="#faq">FAQ</a>
         </nav>
       </div>
-      <p class="footer-bottom">&copy; 2025 Tabungan Masa Depan. Di bawah naungan Koperasi Sari Sedana. Semua hak dilindungi.</p>
+      <p class="footer-bottom">&copy; 2025 mybisnis. Di bawah naungan Koperasi Sari Sedana. Semua hak dilindungi.</p>
     </div>
   </footer>
 

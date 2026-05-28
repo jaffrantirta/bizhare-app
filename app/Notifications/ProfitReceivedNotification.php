@@ -28,12 +28,12 @@ class ProfitReceivedNotification extends Notification implements ShouldQueue
         $amount = number_format($this->transaction->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Bagi Hasil Diterima - BizShare')
+            ->subject('Bagi Hasil Diterima - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Selamat! Anda menerima bagi hasil sebesar **Rp {$amount}** dari bisnis **{$this->business->name}**.")
             ->line('Dana telah ditambahkan ke saldo akun Anda.')
             ->action('Lihat Portofolio', config('app.url'))
-            ->line('Terima kasih telah berinvestasi bersama BizShare!');
+            ->line('Terima kasih telah berinvestasi bersama mybisnis!');
     }
 
     public function toArray(object $notifiable): array

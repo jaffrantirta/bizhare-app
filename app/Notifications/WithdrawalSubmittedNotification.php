@@ -24,13 +24,13 @@ class WithdrawalSubmittedNotification extends Notification implements ShouldQueu
         $amount = number_format($this->withdrawal->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Permintaan Penarikan Diterima - BizShare')
+            ->subject('Permintaan Penarikan Diterima - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Permintaan penarikan sebesar **Rp {$amount}** telah diterima.")
             ->line("Dana akan ditransfer ke rekening **{$this->withdrawal->bank_name} - {$this->withdrawal->account_number}** atas nama **{$this->withdrawal->account_name}**.")
             ->line('Tim kami akan memproses permintaan Anda dalam 1-3 hari kerja.')
             ->action('Lihat Status Penarikan', config('app.url'))
-            ->line('Terima kasih telah menggunakan BizShare!');
+            ->line('Terima kasih telah menggunakan mybisnis!');
     }
 
     public function toArray(object $notifiable): array

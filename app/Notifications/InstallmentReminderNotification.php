@@ -31,14 +31,14 @@ class InstallmentReminderNotification extends Notification implements ShouldQueu
         $amount = number_format($this->installment->amount + $this->installment->admin_fee, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Pengingat Cicilan BizShare - Jatuh Tempo ' . $dueDate)
+            ->subject('Pengingat Cicilan mybisnis - Jatuh Tempo ' . $dueDate)
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Cicilan investasi Anda untuk bisnis **{$businessName}** akan jatuh tempo pada **{$dueDate}**.")
             ->line("Jumlah yang harus dibayar: **Rp {$amount}**")
             ->line("Bulan cicilan: {$this->installment->month_number} dari {$this->investment->tenure_months}")
             ->action('Bayar Sekarang', config('app.url'))
             ->line('Pastikan pembayaran dilakukan sebelum tanggal jatuh tempo.')
-            ->line('Terima kasih telah berinvestasi bersama BizShare!');
+            ->line('Terima kasih telah berinvestasi bersama mybisnis!');
     }
 
     public function toArray(object $notifiable): array

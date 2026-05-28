@@ -8,7 +8,7 @@ use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class BizShareStatsWidget extends StatsOverviewWidget
+class MybisniStatsWidget extends StatsOverviewWidget
 {
     protected function getStats(): array
     {

@@ -24,7 +24,7 @@ class TopUpFailedNotification extends Notification implements ShouldQueue
         $amount = number_format($this->transaction->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Top Up Gagal - BizShare')
+            ->subject('Top Up Gagal - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Top up sebesar **Rp {$amount}** tidak dapat dikonfirmasi.")
             ->line('Silakan hubungi tim support kami jika Anda sudah melakukan pembayaran.')

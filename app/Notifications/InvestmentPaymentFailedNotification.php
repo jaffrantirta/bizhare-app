@@ -25,7 +25,7 @@ class InvestmentPaymentFailedNotification extends Notification implements Should
         $typeLabel = $this->transaction->type === 'installment' ? 'Cicilan' : 'Investasi';
 
         return (new MailMessage)
-            ->subject("Pembayaran {$typeLabel} Gagal - BizShare")
+            ->subject("Pembayaran {$typeLabel} Gagal - mybisnis")
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Pembayaran {$typeLabel} sebesar **Rp {$amount}** tidak dapat dikonfirmasi.")
             ->line('Silakan coba lagi atau hubungi tim support kami.')

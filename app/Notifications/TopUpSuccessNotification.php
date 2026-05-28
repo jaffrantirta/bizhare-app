@@ -24,12 +24,12 @@ class TopUpSuccessNotification extends Notification implements ShouldQueue
         $amount = number_format($this->transaction->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Top Up Berhasil - BizShare')
+            ->subject('Top Up Berhasil - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Top up sebesar **Rp {$amount}** telah berhasil dikonfirmasi.")
             ->line('Akun Anda sekarang aktif dan siap untuk berinvestasi.')
             ->action('Mulai Investasi', config('app.url'))
-            ->line('Terima kasih telah bergabung dengan BizShare!');
+            ->line('Terima kasih telah bergabung dengan mybisnis!');
     }
 
     public function toArray(object $notifiable): array

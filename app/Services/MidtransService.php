@@ -38,9 +38,9 @@ class MidtransService
                 'enable_callback' => true,
                 'callback_url' => config('app.url') . '/api/payments/midtrans/callback',
             ],
-            'custom_field1' => 'tabunganmasadepan.com',
+            'custom_field1' => 'mybisnis.biz.id',
             'metadata' => [
-                'app' => 'tabunganmasadepan.com',
+                'app' => 'mybisnis.biz.id',
             ],
         ];
 

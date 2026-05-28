@@ -29,7 +29,7 @@ class ReferralRewardNotification extends Notification implements ShouldQueue
         $amount = number_format($this->transaction->amount, 0, ',', '.');
 
         return (new MailMessage)
-            ->subject('Bonus Referral Diterima - BizShare')
+            ->subject('Bonus Referral Diterima - mybisnis')
             ->greeting('Halo, ' . $notifiable->name . '!')
             ->line("Selamat! Anda mendapatkan bonus referral sebesar **Rp {$amount}**.")
             ->line("**{$this->newUser->name}** (level {$this->level} dari jaringan Anda) telah menyelesaikan setoran awal.")
