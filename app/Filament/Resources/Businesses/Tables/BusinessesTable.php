@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Businesses\Tables;
 
+use App\Models\SystemSetting;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,6 +17,7 @@ class BusinessesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->withSum('activeInvestments', 'total_amount'))
             ->columns([
                 ImageColumn::make('image')
                     ->disk('public')
@@ -33,6 +35,28 @@ class BusinessesTable
                     ->label('Investors')
                     ->sortable()
                     ->formatStateUsing(fn ($state, $record) => "{$state} / {$record->target_investors}"),
+                TextColumn::make('collected_amount')
+                    ->label('Collected')
+                    ->state(fn ($record) => (float) ($record->active_investments_sum_total_amount ?? 0))
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.')),
+                TextColumn::make('target_amount')
+                    ->label('Target')
+                    ->state(fn ($record) => $record->target_investors * (float) SystemSetting::get('investment_full_amount', 1500000))
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.')),
+                TextColumn::make('funding_progress')
+                    ->label('Progress')
+                    ->badge()
+                    ->state(function ($record) {
+                        $collected = (float) ($record->active_investments_sum_total_amount ?? 0);
+                        $target    = $record->target_investors * (float) SystemSetting::get('investment_full_amount', 1500000);
+                        return $target > 0 ? min(100, (int) round(($collected / $target) * 100)) : 0;
+                    })
+                    ->formatStateUsing(fn ($state) => $state . '%')
+                    ->color(fn ($state) => match (true) {
+                        $state >= 100 => 'success',
+                        $state >= 50  => 'warning',
+                        default       => 'gray',
+                    }),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {

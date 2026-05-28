@@ -34,6 +34,15 @@ class InvestmentService
             throw new Exception('Business is not open for investment.');
         }
 
+        $alreadyInvested = Investment::where('user_id', $user->id)
+            ->where('business_id', $business->id)
+            ->whereNotIn('status', ['failed', 'cancelled'])
+            ->exists();
+
+        if ($alreadyInvested) {
+            throw new Exception('You have already invested in this business.');
+        }
+
         $paymentType = $data['payment_type'];
         $paymentMethod = $data['payment_method'] ?? 'manual_transfer';
         $adminFeePercentage = (float) SystemSetting::get('investment_admin_fee_percentage', 1);
