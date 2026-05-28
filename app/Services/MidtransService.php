@@ -19,7 +19,7 @@ class MidtransService
     }
 
     /**
-     * Create GoPay charge via GoPay payment_type
+     * Create QRIS charge (universal QR — works with GoPay, OVO, DANA, ShopeePay, etc.)
      *
      * @param string $orderId
      * @param int $grossAmount Amount in IDR
@@ -30,14 +30,13 @@ class MidtransService
     public function createGopayCharge(string $orderId, int $grossAmount, array $customerDetails = []): array
     {
         $params = [
-            'payment_type' => 'gopay',
+            'payment_type' => 'qris',
             'transaction_details' => [
-                'order_id' => $orderId,
+                'order_id'     => $orderId,
                 'gross_amount' => $grossAmount,
             ],
-            'gopay' => [
-                'enable_callback' => true,
-                'callback_url' => config('app.url') . '/api/payments/midtrans/callback',
+            'qris' => [
+                'acquirer' => 'gopay',
             ],
             'custom_field1' => 'mybisnis.biz.id',
             'metadata' => [
@@ -49,33 +48,29 @@ class MidtransService
             $params['customer_details'] = $customerDetails;
         }
 
-        Log::info('Midtrans GoPay charge request', [
-            'order_id'     => $orderId,
-            'amount'       => $grossAmount,
+        Log::info('Midtrans QRIS charge request', [
+            'order_id'      => $orderId,
+            'amount'        => $grossAmount,
             'is_production' => Config::$isProduction,
         ]);
 
         $result = CoreApi::charge($params);
 
         $qrCodeUrl = '';
-        $deeplinkUrl = '';
 
         if (isset($result->actions)) {
             foreach ($result->actions as $action) {
                 if ($action->name === 'generate-qr-code') {
                     $qrCodeUrl = $action->url;
                 }
-                if ($action->name === 'deeplink-redirect') {
-                    $deeplinkUrl = $action->url;
-                }
             }
         }
 
         return [
-            'qr_code_url' => $qrCodeUrl,
-            'deeplink_url' => $deeplinkUrl,
+            'qr_code_url'    => $qrCodeUrl,
+            'deeplink_url'   => '',
             'transaction_id' => $result->transaction_id ?? '',
-            'order_id' => $result->order_id ?? $orderId,
+            'order_id'       => $result->order_id ?? $orderId,
         ];
     }
 
