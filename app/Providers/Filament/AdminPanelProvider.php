@@ -40,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\BizShareStatsWidget::class,
                 \App\Filament\Widgets\ReferralStatsWidget::class,
+                \App\Filament\Widgets\PaymentChannelStatsWidget::class,
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])
