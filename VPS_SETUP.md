@@ -1,7 +1,7 @@
 # VPS Setup Guide — Tabungan Masa Depan (BizShare)
 
 **Target:** Ubuntu 24.04 LTS  
-**Stack:** PHP 8.4 · Laravel 13 · SQLite · Nginx · Supervisor
+**Stack:** PHP 8.4 · Laravel 13 · MySQL 8 · Nginx · Supervisor
 
 ---
 
@@ -102,6 +102,40 @@ sudo systemctl enable php8.4-fpm
 
 ---
 
+## 2b. Install MySQL 8
+
+```bash
+sudo apt install -y mysql-server
+sudo systemctl enable mysql
+sudo systemctl start mysql
+
+# Secure the installation
+sudo mysql_secure_installation
+```
+
+Create the application database and user:
+
+```bash
+sudo mysql -u root -p
+```
+
+```sql
+CREATE DATABASE mybisnis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'bisnis_user'@'localhost' IDENTIFIED BY 'strong_password_here';
+GRANT ALL PRIVILEGES ON mybisnis.* TO 'bisnis_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+Also install the PHP MySQL extension:
+
+```bash
+sudo apt install -y php8.4-mysql
+sudo systemctl restart php8.4-fpm
+```
+
+---
+
 ## 3. Install Nginx
 
 ```bash
@@ -188,8 +222,12 @@ LOG_CHANNEL=stack
 LOG_LEVEL=warning
 
 # ─── Database ──────────────────────────────────────────────────────────────
-DB_CONNECTION=sqlite
-# DB_DATABASE is auto-resolved to database/database.sqlite
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=mybisnis
+DB_USERNAME=bisnis_user
+DB_PASSWORD=strong_password_here
 
 # ─── Cache / Session / Queue ───────────────────────────────────────────────
 CACHE_STORE=database
@@ -230,13 +268,7 @@ php artisan key:generate
 
 ## 8. Run Migrations
 
-### 8a. Create SQLite database file
-
-```bash
-touch database/database.sqlite
-```
-
-### 8b. Run all migrations (creates tables + seeds admin user + system settings)
+### 8a. Run all migrations (creates tables + seeds admin user + system settings)
 
 ```bash
 php artisan migrate --force
@@ -244,7 +276,7 @@ php artisan migrate --force
 
 > The admin account and all default system settings are created automatically by the migration.
 
-### 8c. Create storage symlink
+### 8b. Create storage symlink
 
 ```bash
 php artisan storage:link
@@ -417,12 +449,6 @@ cd /var/www/bizhare
 # Directories writable by PHP-FPM
 sudo chown -R deployer:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
-
-# SQLite database must be writable
-sudo chown deployer:www-data database/database.sqlite
-sudo chmod 664 database/database.sqlite
-sudo chown deployer:www-data database/
-sudo chmod 775 database/
 ```
 
 ---
