@@ -12,14 +12,18 @@ class MidtransService
 {
     public function __construct()
     {
-        Config::$serverKey = config('services.midtrans.server_key');
+        Config::$serverKey    = config('services.midtrans.server_key');
         Config::$isProduction = config('services.midtrans.is_production', false);
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+        Config::$isSanitized  = true;
+        Config::$is3ds        = true;
+
+        // Indonesian locale for GoPay pages
+        Config::$curlOptions[CURLOPT_HTTPHEADER][] = 'X-Payment-Locale: id-ID';
     }
 
     /**
-     * Create QRIS charge (universal QR — works with GoPay, OVO, DANA, ShopeePay, etc.)
+     * Create GoPay Dynamic QRIS charge.
+     * Uses order_id as Idempotency-Key — safe to retry on network error.
      *
      * @param string $orderId
      * @param int $grossAmount Amount in IDR
@@ -29,14 +33,22 @@ class MidtransService
      */
     public function createGopayCharge(string $orderId, int $grossAmount, array $customerDetails = []): array
     {
+        // Midtrans requires HTTPS callback URL in production
+        $callbackUrl = str_replace('http://', 'https://', config('app.url'))
+            . '/api/payments/midtrans/callback';
+
+        // Idempotency-Key prevents duplicate charges on mobile retry (max 46 chars)
+        Config::$paymentIdempotencyKey = substr($orderId, 0, 46);
+
         $params = [
-            'payment_type' => 'qris',
+            'payment_type' => 'gopay',
             'transaction_details' => [
                 'order_id'     => $orderId,
                 'gross_amount' => $grossAmount,
             ],
-            'qris' => [
-                'acquirer' => 'gopay',
+            'gopay' => [
+                'enable_callback' => true,
+                'callback_url'    => $callbackUrl,
             ],
             'custom_field1' => 'mybisnis.biz.id',
             'metadata' => [
@@ -48,27 +60,38 @@ class MidtransService
             $params['customer_details'] = $customerDetails;
         }
 
-        Log::info('Midtrans QRIS charge request', [
-            'order_id'      => $orderId,
-            'amount'        => $grossAmount,
-            'is_production' => Config::$isProduction,
+        Log::info('Midtrans GoPay charge request', [
+            'order_id'        => $orderId,
+            'amount'          => $grossAmount,
+            'is_production'   => Config::$isProduction,
+            'callback_url'    => $callbackUrl,
+            'idempotency_key' => Config::$paymentIdempotencyKey,
         ]);
 
-        $result = CoreApi::charge($params);
+        try {
+            $result = CoreApi::charge($params);
+        } finally {
+            // Reset idempotency key so it doesn't bleed into other calls
+            Config::$paymentIdempotencyKey = null;
+        }
 
-        $qrCodeUrl = '';
+        $qrCodeUrl   = '';
+        $deeplinkUrl = '';
 
         if (isset($result->actions)) {
             foreach ($result->actions as $action) {
                 if ($action->name === 'generate-qr-code') {
                     $qrCodeUrl = $action->url;
                 }
+                if ($action->name === 'deeplink-redirect') {
+                    $deeplinkUrl = $action->url;
+                }
             }
         }
 
         return [
             'qr_code_url'    => $qrCodeUrl,
-            'deeplink_url'   => '',
+            'deeplink_url'   => $deeplinkUrl,
             'transaction_id' => $result->transaction_id ?? '',
             'order_id'       => $result->order_id ?? $orderId,
         ];
@@ -86,12 +109,12 @@ class MidtransService
         $result = Transaction::status($orderId);
 
         return [
-            'order_id' => $result->order_id ?? $orderId,
-            'transaction_id' => $result->transaction_id ?? null,
+            'order_id'           => $result->order_id ?? $orderId,
+            'transaction_id'     => $result->transaction_id ?? null,
             'transaction_status' => $result->transaction_status ?? 'unknown',
-            'payment_type' => $result->payment_type ?? null,
-            'gross_amount' => $result->gross_amount ?? 0,
-            'fraud_status' => $result->fraud_status ?? null,
+            'payment_type'       => $result->payment_type ?? null,
+            'gross_amount'       => $result->gross_amount ?? 0,
+            'fraud_status'       => $result->fraud_status ?? null,
         ];
     }
 
@@ -101,11 +124,11 @@ class MidtransService
     public function mapStatus(string $midtransStatus, ?string $fraudStatus = null): string
     {
         return match ($midtransStatus) {
-            'capture' => ($fraudStatus === 'accept' || $fraudStatus === null) ? 'success' : 'failed',
+            'capture'  => ($fraudStatus === 'accept' || $fraudStatus === null) ? 'success' : 'failed',
             'settlement' => 'success',
-            'pending' => 'pending',
+            'pending'  => 'pending',
             'deny', 'cancel', 'expire', 'failure' => 'failed',
-            default => 'pending',
+            default    => 'pending',
         };
     }
 }

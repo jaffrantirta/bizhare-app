@@ -69,7 +69,7 @@ class PaymentController extends Controller
                 $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
                 $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
             } catch (Exception $e) {
-                return $this->error('Failed to create GoPay payment: ' . $e->getMessage());
+                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
             }
         }
 
@@ -160,7 +160,7 @@ class PaymentController extends Controller
                 $transactionData['midtrans_qr_code_url']    = $gopay['qr_code_url'];
                 $transactionData['midtrans_deeplink_url']   = $gopay['deeplink_url'];
             } catch (Exception $e) {
-                return $this->error('Failed to create GoPay payment: ' . $e->getMessage());
+                return $this->error('Failed to create QRIS payment: ' . $e->getMessage());
             }
         }
 
