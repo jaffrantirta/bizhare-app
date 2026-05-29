@@ -86,6 +86,10 @@ class MidtransWebhookController extends Controller
             if ($transaction->type === 'initial_deposit') {
                 $user->notify(new TopUpFailedNotification($transaction));
             } elseif (in_array($transaction->type, ['investment', 'installment'])) {
+                Investment::where('id', $transaction->reference_id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'failed']);
+
                 $user->notify(new InvestmentPaymentFailedNotification($transaction));
             }
         }

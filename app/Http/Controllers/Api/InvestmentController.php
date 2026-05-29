@@ -33,11 +33,7 @@ class InvestmentController extends Controller
      */
     public function store(Request $request, ?int $businessId = null): JsonResponse
     {
-        Log::info('[InvestmentController@store] hit', [
-            'businessId_from_route' => $businessId,
-            'body'                  => $request->all(),
-            'user_id'               => $request->user()?->id,
-        ]);
+        
 
         $validated = $request->validate([
             'business_id'    => $businessId ? 'nullable' : 'required|exists:businesses,id',
@@ -54,15 +50,9 @@ class InvestmentController extends Controller
             $validated['payment_method'] = 'gopay';
         }
 
-        Log::info('[InvestmentController@store] validated', $validated);
 
         try {
             $result = $this->investmentService->createInvestment($request->user(), $validated);
-
-            Log::info('[InvestmentController@store] success', [
-                'investment_id'  => $result['investment']->id,
-                'transaction_id' => $result['transaction']->id,
-            ]);
 
             return $this->created([
                 'investment'  => $result['investment']->load(['business', 'installmentPayments']),

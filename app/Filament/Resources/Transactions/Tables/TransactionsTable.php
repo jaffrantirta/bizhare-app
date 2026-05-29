@@ -143,6 +143,11 @@ class TransactionsTable
                         if ($record->type === 'initial_deposit') {
                             $user->notify(new TopUpFailedNotification($record));
                         } elseif (in_array($record->type, ['investment', 'installment'])) {
+                            // Mark investment as failed so investor can re-apply
+                            Investment::where('id', $record->reference_id)
+                                ->where('status', 'pending')
+                                ->update(['status' => 'failed']);
+
                             $user->notify(new InvestmentPaymentFailedNotification($record));
                         }
                     }),
