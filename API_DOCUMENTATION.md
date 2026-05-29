@@ -353,7 +353,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 ---
 
 ### GET /payments/{transaction}/status
-*Requires verified investor.* Poll Snap payment status.
+*Requires auth.* Poll Snap payment status.
 
 **Example Response (200)**
 ```json
@@ -367,7 +367,7 @@ address=Jl. Soekarno Hatta No. 123, RT 02/RW 05
 ---
 
 ### GET /payments/history
-*Requires verified investor.* Paginated list of payment transactions (deposit, investment, installment).
+*Requires auth.* Paginated list of payment transactions (deposit, investment, installment).
 
 ---
 

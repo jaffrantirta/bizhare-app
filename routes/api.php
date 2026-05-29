@@ -35,39 +35,41 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/businesses',      [BusinessController::class, 'index']);
     Route::get('/businesses/{id}', [BusinessController::class, 'show']);
 
+    // Payments — accessible to any authenticated user
+    Route::get('/payments/{transaction}/status', [PaymentController::class, 'checkStatus']);
+    Route::get('/payments/history',              [PaymentController::class, 'history']);
+
+    // Balance & history — accessible to any authenticated user
+    Route::get('/balance',         [WalletController::class, 'index']);
+    Route::get('/balance/history', [WalletController::class, 'history']);
+
+    // Referral — any authenticated user can share their code
+    Route::get('/referral/code',    [ReferralController::class, 'code']);
+    Route::get('/referral/tree',    [ReferralController::class, 'tree']);
+    Route::get('/referral/rewards', [ReferralController::class, 'rewards']);
+
+    // Notifications — any authenticated user
+    Route::get('/notifications',                [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read',     [NotificationController::class, 'markRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
+
     // ─── Verified investors only ──────────────────────────────────────────────
     Route::middleware('verified.investor')->group(function () {
 
         // Investments
         Route::post('/businesses/{businessId}/invest', [InvestmentController::class, 'store']);
-        Route::get('/investments',             [InvestmentController::class, 'index']);
-        Route::get('/investments/{id}',        [InvestmentController::class, 'show']);
+        Route::get('/investments',                     [InvestmentController::class, 'index']);
+        Route::get('/investments/{id}',                [InvestmentController::class, 'show']);
 
         // Portfolio
-        Route::get('/portfolio',     [PortfolioController::class, 'index']);
+        Route::get('/portfolio',      [PortfolioController::class, 'index']);
         Route::get('/portfolio/{id}', [PortfolioController::class, 'show']);
 
-        // Payments
+        // Installment payment
         Route::post('/payments/installment/{investment}', [PaymentController::class, 'payInstallment']);
-        Route::get('/payments/{transaction}/status',      [PaymentController::class, 'checkStatus']);
-        Route::get('/payments/history',                   [PaymentController::class, 'history']);
-
-        // Balance
-        Route::get('/balance',         [WalletController::class, 'index']);
-        Route::get('/balance/history', [WalletController::class, 'history']);
 
         // Withdrawals
         Route::post('/withdrawal/request', [WalletController::class, 'withdraw']);
         Route::get('/withdrawal/history',  [WalletController::class, 'withdrawalHistory']);
-
-        // Referral
-        Route::get('/referral/code',    [ReferralController::class, 'code']);
-        Route::get('/referral/tree',    [ReferralController::class, 'tree']);
-        Route::get('/referral/rewards', [ReferralController::class, 'rewards']);
-
-        // Notifications
-        Route::get('/notifications',                         [NotificationController::class, 'index']);
-        Route::post('/notifications/{id}/read',              [NotificationController::class, 'markRead']);
-        Route::post('/notifications/mark-all-read',          [NotificationController::class, 'markAllRead']);
     });
 });
