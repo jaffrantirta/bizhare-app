@@ -6,6 +6,9 @@
   <meta name="description" content="mybisnis — Investasi nyata pada bisnis terverifikasi, bagi hasil transparan, di bawah naungan Koperasi Sari Sedana." />
   <title>mybisnis — Investasi Nyata, Bisnis Bisa Dilihat</title>
 
+  <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+  <link rel="apple-touch-icon" href="/logo.jpg" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -146,15 +149,17 @@
     .nav-logo { display: flex; align-items: center; gap: .75rem; }
     .nav-logo-mark {
       width: 42px; height: 42px;
-      background: var(--gold);
       border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-family: var(--font-head);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--green-deep);
+      overflow: hidden;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-logo-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .nav-logo-text { color: var(--white); }
     .nav-logo-text strong { display: block; font-family: var(--font-head); font-size: 1rem; line-height: 1.1; }
@@ -665,7 +670,7 @@
     <div class="container">
       <div class="nav-inner">
         <a href="#" class="nav-logo" aria-label="mybisnis beranda">
-          <div class="nav-logo-mark">MB</div>
+          <div class="nav-logo-mark"><img src="/logo.jpg" alt="mybisnis logo" /></div>
           <div class="nav-logo-text">
             <strong>mybisnis</strong>
             <span>Investasi Nyata, Hasil Pasti</span>
@@ -988,7 +993,7 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <div class="nav-logo">
-            <div class="nav-logo-mark">MB</div>
+            <div class="nav-logo-mark"><img src="/logo.jpg" alt="mybisnis logo" /></div>
             <div class="nav-logo-text"><strong>mybisnis</strong></div>
           </div>
           <p class="tagline">Investasi nyata pada bisnis lokal yang bisa Anda lihat dan verifikasi sendiri.</p>
