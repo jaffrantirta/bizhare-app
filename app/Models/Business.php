@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Business extends Model
@@ -26,13 +27,24 @@ class Business extends Model
         'created_by',
     ];
 
+    protected $appends = ['image_url'];
+
     protected function casts(): array
     {
         return [
-            'activation_date' => 'date',
-            'target_investors' => 'integer',
+            'activation_date'   => 'date',
+            'target_investors'  => 'integer',
             'current_investors' => 'integer',
         ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->image);
     }
 
     protected static function booted(): void

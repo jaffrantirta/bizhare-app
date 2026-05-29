@@ -351,8 +351,9 @@ server {
         deny all;
     }
 
-    # Block direct access to sensitive directories
-    location ~ ^/(\.env|storage|database|bootstrap/cache) {
+    # Block direct access to sensitive files/directories
+    # NOTE: do NOT add 'storage' here — public/storage is the upload symlink
+    location ~ ^/(\.env|database|bootstrap/cache) {
         deny all;
     }
 
